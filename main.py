@@ -16,8 +16,8 @@ def fx(word: str) -> str:
     if word is not None:
         # Проходимся по всей базе
         for field in sql.execute("SELECT * FROM db_words"):
-            if (field[2] == word or field[3] == word or field[4] == word or
-                    field[5] == word or field[6] == word):
+            if (field[1] == word or field[2] == word or field[3] == word or
+                    field[4] == word or field[5] == word or field[6] == word):
                 # Подставляемая аббревиатура из колонки А словаря
                 abr: str = field[0]
                 return abr
@@ -66,8 +66,7 @@ def translit(text):
 
     cyrillic = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя-/№><.'
 
-    latin = 'a|b|v|g|d|e|e|z|z|i|i|k|l|m|n|o|p|r|s|t|u|f|x|tc|ch|sh|shch|'
-    '|y||e|iu|ia|_|_|N|more|less|_|'.split('|')  # таблица транслитерации
+    latin = 'a|b|v|g|d|e|e|z|z|i|i|k|l|m|n|o|p|r|s|t|u|f|x|tc|ch|sh|shch||y||e|iu|ia|_|_|N|more|less|_|'.split('|')  # таблица транслитерации
     trantab = {k: v for k, v in zip(cyrillic, latin)}
     newtext = ''
     for ch in text:
@@ -131,7 +130,7 @@ def fd(s):
         elif list3[i] == '' and list2[i] == '':
             continue
     list_c = list(filter(lambda x: x != '', list_c))
-    # list_c = list(set(list_c))
+    list_c = list(set(list_c))
     x = '_'.join([str(x) for x in list_c])
     return str(x), str(k)
 

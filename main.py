@@ -8,25 +8,21 @@ db = sqlite3.connect('words.db')  # Подсоединяем базу слова
 sql = db.cursor()
 
 
-def fx(word: str) -> str:
-    """Функция перевода слов по базе words.db ."""
-    """Пробегает по базе ищет слова в field2-field6."""
-    """И берет найденую аббревиатуру из field1"""
-    # Если слово не пустое
-    if word is not None:
+def search_word_in_db(word: str) -> str:
+    """Функция перевода слов по базе words.db .
+    Пробегает по базе ищет слова в field2-field6.
+    И берет найденую аббревиатуру из field1"""
+
+    if word:  # Если слово не пустое
         # Проходимся по всей базе
         for field in sql.execute("SELECT * FROM db_words"):
-            if (field[1] == word or field[2] == word or field[3] == word or
-                    field[4] == word or field[5] == word or field[6] == word):
+            if any(f == word for f in field[1:7]):
                 # Подставляемая аббревиатура из колонки А словаря
-                abr: str = field[0]
-                return abr
-    elif word is None:
-        abr = ''
+                return field[0]
 
 
-# Проверка предложения на все маркировки и абревиатуры
 def is_all_upper(text: str) -> bool:
+    """Проверка предложения на все маркировки и абревиатуры"""
     if text.upper() == text:
         return True
     elif len(text) == 0:
@@ -37,8 +33,8 @@ def is_all_upper(text: str) -> bool:
 def spec_symb(text: str) -> bool:
     # патерн поиска аббревиатур и спец последовательностей
     mark = r'(\b[а-я]{1}[!-~]{1}[а-я]{1}\b)'
-    r'|(\b[А-Я]{2}[а-я]{1}\b)'
-    r'|(\b[0-9]{1}[а-я]{2}\b)'
+    r'|(\b[А-Я]{2}[а-я]{1}\b)'  # например в тексте МПа КПа
+    r'|(\b[0-9]{1}[а-я]{2}\b)'  # например в тексте 9я
     r'|(\b[A-Z]{1}[a-z]{1}[0-9]{1}\b)'
     r'|(\b[a-z!-~0-9]{6})'
     r'|(\b[A-Za-z]\b)'
@@ -52,17 +48,19 @@ def spec_symb(text: str) -> bool:
 
 def translit(text):
     # спецфильтр
-
-    text = text.replace('#', '')
-    text = text.replace('“', '')
-    text = text.replace('”', '')
-    text = text.replace('–', '')
-    text = text.replace('%', '')
-    text = text.replace('~', '')
-    text = text.replace('=220В', '220VDC')
-    text = text.replace('=24В', '24VDC')
-    text = text.replace('~220В', '220VAC')
-    text = text.replace('°C', '')
+    replacements = [['#', ''],
+                    ['“', ''],
+                    ['”', ''],
+                    ['–', ''],
+                    ['%', ''],
+                    ['~220В', '220VAC'],
+                    ['=220В', '220VDC'],
+                    ['=24В', '24VDC'],
+                    ['°C', '']
+                    ]
+    # пробегаемся по тексту фильтром
+    for frm, to in replacements:
+        text = text.replace(frm, to)
 
     cyrillic = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя-/№><.'
 
@@ -78,6 +76,16 @@ def translit(text):
 # функция отделения аббревиатур от основного предложения
 def fd(s):
     # фильтр опечаток
+    # replacements = [['/', ' '],
+    #                [],
+    #                [],
+    #                [],
+    #                [],
+    #                [],
+    #                [],
+    #                [],
+    #                []
+    #                ]
     s = s.replace('/', ' ')
     s = s.replace('. ', ' ')
     s = s.replace('-', ' ')
@@ -110,7 +118,7 @@ def fd(s):
     # формируем пустой список с числом элементов количества слов
     list3 = [''] * numword
     for g in range(0, len(result)):
-        list3[g] = ((fx(str(result[g].lower()))))
+        list3[g] = search_word_in_db(str(result[g].lower()))
         if list3[g] is None:
             list3[g] = ''
             k = result[g].lower()
@@ -130,7 +138,6 @@ def fd(s):
         elif list3[i] == '' and list2[i] == '':
             continue
     list_c = list(filter(lambda x: x != '', list_c))
-    list_c = list(set(list_c))
     x = '_'.join([str(x) for x in list_c])
     return str(x), str(k)
 

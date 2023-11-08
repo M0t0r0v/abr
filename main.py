@@ -48,7 +48,8 @@ def spec_symb(text: str) -> bool:
 
 def translit(text):
     # спецфильтр
-    replacements = [['#', ''],
+    replacements = [['*', ''],
+                    ['#', ''],
                     ['“', ''],
                     ['”', ''],
                     ['–', ''],
@@ -76,31 +77,25 @@ def translit(text):
 # функция отделения аббревиатур от основного предложения
 def fd(s):
     # фильтр опечаток
-    # replacements = [['/', ' '],
-    #                [],
-    #                [],
-    #                [],
-    #                [],
-    #                [],
-    #                [],
-    #                [],
-    #                []
-    #                ]
-    s = s.replace('/', ' ')
-    s = s.replace('. ', ' ')
-    s = s.replace('-', ' ')
-    s = s.replace(',', ' ')
-    s = s.replace('"', ' ')
-    s = s.replace('(', ' ')
-    s = s.replace(')', ' ')
-    s = s.replace('“', '')
-    s = s.replace('”', '')
-    s = s.replace('«', '')
-    s = s.replace(';', '')
-    s = s.replace('»', '')
-    s = s.replace('  ', ' ')
+    replacement2 = [['/', ' '],
+                    ['. ', ' '],
+                    ['-', ' '],
+                    [',', ' '],
+                    ['"', ' '],
+                    ['(', ' '],
+                    [')', ' '],
+                    ['“', ''],
+                    ['”', ''],
+                    ['«', ''],
+                    [';', ''],
+                    ['»', ''],
+                    ['  ', ' ']
+                    ]
+    for frm, to in replacement2:
+        s = s.replace(frm, to)
+    s = s.split()
 
-    s = s.split()  # формируем исходный список слов
+    # s = s.split()  # формируем исходный список слов
 
     numword: int = len(s)  # определяе колличество слов в предложении
 

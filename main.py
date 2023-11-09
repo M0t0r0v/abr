@@ -13,7 +13,7 @@ def search_word_in_db(word: str) -> str:
     Пробегает по базе ищет слова в field2-field6.
     И берет найденую аббревиатуру из field1"""
 
-    if word:  # Если слово не пустое
+    if word is not None:  # Если слово не пустое
         # Проходимся по всей базе
         for field in sql.execute("SELECT * FROM db_words"):
             if any(f == word for f in field[1:7]):
@@ -74,67 +74,71 @@ def translit(text):
     return str(newtext)
 
 
-# функция отделения аббревиатур от основного предложения
 def fd(s):
-    # фильтр опечаток
-    replacement2 = [['/', ' '],
-                    ['. ', ' '],
-                    ['-', ' '],
-                    [',', ' '],
-                    ['"', ' '],
-                    ['(', ' '],
-                    [')', ' '],
-                    ['“', ''],
-                    ['”', ''],
-                    ['«', ''],
-                    [';', ''],
-                    ['»', ''],
-                    ['  ', ' ']
-                    ]
-    for frm, to in replacement2:
-        s = s.replace(frm, to)
-    s = s.split()
+    """Функция отделения аббревиатур от основного предложения."""
+    if s is not None:
+        # фильтр опечаток
+        replacement2 = [['. ', ' '],
+                        ['-', ' '],
+                        [',', ' '],
+                        ['"', ' '],
+                        ['(', ' '],
+                        [')', ' '],
+                        ['“', ''],
+                        ['”', ''],
+                        ['«', ''],
+                        [';', ''],
+                        ['»', ''],
+                        ['  ', ' ']
+                        ]
+        for frm, to in replacement2:
+            s = s.replace(frm, to)
 
-    # s = s.split()  # формируем исходный список слов
+        s = s.split()  # формируем исходный список слов
 
-    numword: int = len(s)  # определяе колличество слов в предложении
+        numword: int = len(s)  # определяе колличество слов в предложении
 
-    # формируем пустой список с числом элементов количества слов
-    list1 = [''] * numword
-    list2 = [''] * numword
+        # формируем пустой список с числом элементов количества слов
+        list1 = [''] * numword
+        list2 = [''] * numword
 
-    for i in range(0, numword):  # записываем аббревиатуры в пустой список
-        if is_all_upper(str(s[i])) or spec_symb(str(s[i])):
-            list1[i] = str(s[i])
-            list2[i] = translit(str(s[i]))
-    # исключаем из исходного списка аббревиатуры
-    result = list(itertools.filterfalse(list1.__contains__, iter(s)))
-    k = [''] * numword
-    # формируем пустой список с числом элементов количества слов
-    list3 = [''] * numword
-    for g in range(0, len(result)):
-        list3[g] = search_word_in_db(str(result[g].lower()))
-        if list3[g] is None:
-            list3[g] = ''
-            k = result[g].lower()
-            continue
+        for i in range(0, numword):  # записываем аббревиатуры в пустой список
+            if is_all_upper(str(s[i])) or spec_symb(str(s[i])):
+                list1[i] = str(s[i])
+                list2[i] = translit(str(s[i]))
+        # исключаем из исходного списка аббревиатуры
+        result = list(itertools.filterfalse(list1.__contains__, iter(s)))
+        k = [''] * numword
+        # формируем пустой список с числом элементов количества слов
+        list3 = [''] * numword
+        for g in range(0, len(result)):
+            list3[g] = search_word_in_db(str(result[g].lower()))
+            if list3[g] is None:
+                list3[g] = ''
+                k = result[g].lower()
+                continue
 
-    # Поэлементное слияние листа маркировок и аббревиатур
-    list_c = []
+        # Поэлементное слияние листа маркировок и аббревиатур
+        list_c = []
 
-    for i in range(numword):
-        if list2[i] == '' and list3[i] != '':
-            list_c.append(list3[i])
-        elif list3[i] != '' and list2[i] != '':
-            list_c.insert(i, list2[i])
-            list_c.insert(i + 1, list3[i])
-        elif list3[i] == '' and list2[i] != '':
-            list_c.append(list2[i])
-        elif list3[i] == '' and list2[i] == '':
-            continue
-    list_c = list(filter(lambda x: x != '', list_c))
-    x = '_'.join([str(x) for x in list_c])
-    return str(x), str(k)
+        for i in range(numword):
+            if list2[i] == '' and list3[i] != '':
+                list_c.append(list3[i])
+            elif list3[i] != '' and list2[i] != '':
+                list_c.insert(i, list2[i])
+                list_c.insert(i + 1, list3[i])
+            elif list3[i] == '' and list2[i] != '':
+                list_c.append(list2[i])
+            elif list3[i] == '' and list2[i] == '':
+                continue
+        list_c = list(filter(lambda x: x != '', list_c))
+        x = '_'.join([str(x) for x in list_c])
+        return str(x), str(k)
+    else:
+        # Если входное слово None то заполняем пустой строкой
+        empty1: str = ''
+        empty2: str = ''
+        return empty1, empty2
 
 
 filename_excel = ('LIST.xlsx')

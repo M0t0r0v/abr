@@ -132,6 +132,7 @@ def fd(s):
             elif list3[i] == '' and list2[i] == '':
                 continue
         list_c = list(filter(lambda x: x != '', list_c))
+        list_c = list(dict.fromkeys(list_c))
         x = '_'.join([str(x) for x in list_c])
         return str(x), str(k)
     else:

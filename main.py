@@ -4,25 +4,29 @@ from re import findall
 from tqdm import tqdm
 import itertools
 
-db = sqlite3.connect('words.db')  # Подсоединяем базу словарей
+DATABASE: str = 'words.db'  # Имя Базы данных
+TABLE: str = 'db_words'     # Имя таблицы данных
+
+db = sqlite3.connect(DATABASE)  # Подсоединяем базу данных словарей
 sql = db.cursor()
 
 
 def search_word_in_db(word: str) -> str:
-    """Функция перевода слов по базе words.db .
-    Пробегает по базе ищет слова в field2-field6.
-    И берет найденую аббревиатуру из field1"""
+    """Функция перевода слов по базе данных DATABASE.
+    Пробегает по всей таблице TABLE, ищем слова из field[1]-field[7].
+    И берет найденую аббревиатуру из field[0]."""
 
     if word is not None:  # Если слово не пустое
-        # Проходимся по всей базе
-        for field in sql.execute("SELECT * FROM db_words"):
+        # sql запрос, все слова
+        for field in sql.execute('SELECT * FROM ' + (TABLE)):
             if any(f == word for f in field[1:7]):
-                # Подставляемая аббревиатура из колонки А словаря
+                # Подставляемая аббревиатура из колонки field1 словаря
                 return field[0]
 
 
 def is_all_upper(text: str) -> bool:
     """Проверка предложения на все маркировки и абревиатуры"""
+
     if text.upper() == text:
         return True
     elif len(text) == 0:
@@ -31,14 +35,17 @@ def is_all_upper(text: str) -> bool:
 
 
 def spec_symb(text: str) -> bool:
-    # патерн поиска аббревиатур и спец последовательностей
+    """Патерн поиска аббревиатур и спец последовательностей."""
+
     mark = r'(\b[а-я]{1}[!-~]{1}[а-я]{1}\b)'
     r'|(\b[А-Я]{2}[а-я]{1}\b)'  # например в тексте МПа КПа
     r'|(\b[0-9]{1}[а-я]{2}\b)'  # например в тексте 9я
     r'|(\b[A-Z]{1}[a-z]{1}[0-9]{1}\b)'
     r'|(\b[a-z!-~0-9]{6})'
     r'|(\b[A-Za-z]\b)'
-    mark = findall(mark, text)
+
+    mark: list = findall(mark, text)
+
     if not mark:
         return False
     elif len(mark) > 0:
@@ -46,7 +53,7 @@ def spec_symb(text: str) -> bool:
     return False
 
 
-def translit(text):
+def translit(text) -> str:
     # спецфильтр
     replacements = [['*', ''],
                     ['#', ''],
@@ -74,8 +81,9 @@ def translit(text):
     return str(newtext)
 
 
-def fd(s):
+def main(s: str) -> str:
     """Функция отделения аббревиатур от основного предложения."""
+
     if s is not None:
         # фильтр опечаток
         replacement2 = [['. ', ' '],
@@ -94,7 +102,7 @@ def fd(s):
         for frm, to in replacement2:
             s = s.replace(frm, to)
 
-        s = s.split()  # формируем исходный список слов
+        s = s.split()  # формируем исходный список слов из предложения
 
         numword: int = len(s)  # определяе колличество слов в предложении
 
@@ -132,23 +140,25 @@ def fd(s):
             elif list3[i] == '' and list2[i] == '':
                 continue
         list_c = list(filter(lambda x: x != '', list_c))
+        # избавляемся от дубликатов
         list_c = list(dict.fromkeys(list_c))
         x = '_'.join([str(x) for x in list_c])
         return str(x), str(k)
-    else:
+    else:  # лучше явно чем не явно
         # Если входное слово None то заполняем пустой строкой
         empty1: str = ''
         empty2: str = ''
         return empty1, empty2
 
 
+# Файл поиска и записи результата
 filename_excel = ('LIST.xlsx')
 wb2 = oxl.reader.excel.load_workbook(filename=filename_excel, data_only=True)
 wb2.active = 0
 sheet = wb2.active
 # for i in range (1,sheet.max_row+1):
 for i in tqdm(range(1, sheet.max_row+1)):
-    c, g = fd((sheet['A'+str(i)].value))
+    c, g = main((sheet['A'+str(i)].value))
     sheet['B' + str(i)] = c  # готовая аббревиатура
     sheet['C' + str(i)] = g  # слова которые на нашлись в словаре
 wb2.save(filename_excel)

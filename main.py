@@ -4,8 +4,7 @@ from re import findall
 from tqdm import tqdm
 import itertools
 
-DATABASE: str = 'words.db'  # Имя Базы данных
-TABLE: str = 'db_words'     # Имя таблицы данных
+DATABASE: str = 'words_ver2.db'  # Имя Базы данных
 
 db = sqlite3.connect(DATABASE)  # Подсоединяем базу данных словарей
 sql = db.cursor()
@@ -18,6 +17,7 @@ def search_word_in_db(word: str) -> str:
 
     if word is not None:  # Если слово не пустое
         # sql запрос, все слова
+        TABLE = word[0]
         for field in sql.execute('SELECT * FROM ' + (TABLE)):
             if any(f == word for f in field[1:7]):
                 # Подставляемая аббревиатура из колонки field1 словаря

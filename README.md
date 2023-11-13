@@ -1,3 +1,6 @@
+13.11.2023 17:28
+Not working yes, because not finished migration on words in DB
+
 13.11.2023
 Add Docstrings
 Preparing DB for extend sql query
